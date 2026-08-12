@@ -6,7 +6,6 @@ const DB_FILE = path.join(__dirname, 'data.json');
 const DATABASE_URL = process.env.DATABASE_URL;
 
 let pool = null;
-let isPgReady = false;
 
 const defaultData = {
   users: [
@@ -31,8 +30,6 @@ const defaultData = {
   accessories: [],
   requests: []
 };
-
-let inMemoryDb = readDataLocal();
 
 function readDataLocal() {
   try {
@@ -63,10 +60,10 @@ if (DATABASE_URL) {
     ssl: DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
   });
 
-  initPostgresSchema();
+  initPgSchema();
 }
 
-async function initPostgresSchema() {
+async function initPgSchema() {
   if (!pool) return;
   try {
     const client = await pool.connect();
@@ -124,10 +121,9 @@ async function initPostgresSchema() {
       );
     `);
 
-    // Seed default users if users table is empty
-    const userCountRes = await client.query('SELECT COUNT(*) FROM users');
-    if (parseInt(userCountRes.rows[0].count, 10) === 0) {
-      console.log('Seeding initial system users into PostgreSQL...');
+    // Seed default users if empty
+    const userRes = await client.query('SELECT count(*) FROM users');
+    if (parseInt(userRes.rows[0].count, 10) === 0) {
       for (const u of defaultData.users) {
         await client.query(
           'INSERT INTO users (id, username, name, role, password) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING',
@@ -136,10 +132,9 @@ async function initPostgresSchema() {
       }
     }
 
-    // Seed default brand if brands table is empty
-    const brandCountRes = await client.query('SELECT COUNT(*) FROM brands');
-    if (parseInt(brandCountRes.rows[0].count, 10) === 0) {
-      console.log('Seeding default brand into PostgreSQL...');
+    // Seed default brand if empty
+    const brandRes = await client.query('SELECT count(*) FROM brands');
+    if (parseInt(brandRes.rows[0].count, 10) === 0) {
       for (const b of defaultData.brands) {
         await client.query(
           'INSERT INTO brands (id, name, code) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING',
@@ -148,10 +143,9 @@ async function initPostgresSchema() {
       }
     }
 
-    // Seed default categories if categories table is empty
-    const catCountRes = await client.query('SELECT COUNT(*) FROM categories');
-    if (parseInt(catCountRes.rows[0].count, 10) === 0) {
-      console.log('Seeding default categories into PostgreSQL...');
+    // Seed default categories if empty
+    const catRes = await client.query('SELECT count(*) FROM categories');
+    if (parseInt(catRes.rows[0].count, 10) === 0) {
       for (const c of defaultData.categories) {
         await client.query(
           'INSERT INTO categories (id, name, target_unit, description) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING',
@@ -161,147 +155,211 @@ async function initPostgresSchema() {
     }
 
     client.release();
-    console.log('PostgreSQL schema initialized successfully. Loading existing database records...');
-    await loadFromPostgres();
-    isPgReady = true;
+    console.log('PostgreSQL Database schema initialized successfully!');
   } catch (err) {
     console.error('Error initializing PostgreSQL schema:', err);
   }
 }
 
-async function loadFromPostgres() {
-  if (!pool) return;
-  try {
-    const usersRes = await pool.query('SELECT * FROM users');
-    const brandsRes = await pool.query('SELECT * FROM brands ORDER BY name');
-    const categoriesRes = await pool.query('SELECT * FROM categories ORDER BY name');
-    const accessoriesRes = await pool.query('SELECT * FROM accessories ORDER BY created_at DESC');
-    const requestsRes = await pool.query('SELECT * FROM requests ORDER BY created_at DESC');
+// ASYNC DATABASE ACCESSORS
+async function getBrands() {
+  if (pool) {
+    const res = await pool.query('SELECT * FROM brands ORDER BY name');
+    return res.rows;
+  }
+  return readDataLocal().brands;
+}
 
-    inMemoryDb = {
-      users: usersRes.rows,
-      brands: brandsRes.rows,
-      categories: categoriesRes.rows,
-      accessories: accessoriesRes.rows.map(a => ({ ...a, quantity: Number(a.quantity), unit_cost: Number(a.unit_cost) })),
-      requests: requestsRes.rows.map(r => ({ ...r, items: typeof r.items === 'string' ? JSON.parse(r.items) : r.items }))
+async function addBrand(name, code) {
+  const newB = { id: 'b_' + Date.now(), name: name.trim(), code: (code || name.substring(0, 3)).toUpperCase() };
+  if (pool) {
+    await pool.query('INSERT INTO brands (id, name, code) VALUES ($1, $2, $3)', [newB.id, newB.name, newB.code]);
+  }
+  const local = readDataLocal();
+  local.brands.push(newB);
+  writeDataLocal(local);
+  return newB;
+}
+
+async function updateBrand(id, name, code) {
+  if (pool) {
+    await pool.query('UPDATE brands SET name=$1, code=$2 WHERE id=$3', [name.trim(), code.trim().toUpperCase(), id]);
+  }
+  const local = readDataLocal();
+  const idx = local.brands.findIndex(b => b.id === id);
+  if (idx !== -1) {
+    local.brands[idx].name = name.trim();
+    local.brands[idx].code = code.trim().toUpperCase();
+    writeDataLocal(local);
+  }
+  return { id, name: name.trim(), code: code.trim().toUpperCase() };
+}
+
+async function deleteBrand(id) {
+  if (pool) {
+    await pool.query('DELETE FROM brands WHERE id = $1', [id]);
+  }
+  const local = readDataLocal();
+  local.brands = local.brands.filter(b => b.id !== id);
+  writeDataLocal(local);
+}
+
+async function getCategories() {
+  if (pool) {
+    const res = await pool.query('SELECT * FROM categories ORDER BY name');
+    return res.rows;
+  }
+  return readDataLocal().categories;
+}
+
+async function addCategory(name, target_unit, description) {
+  const newC = { id: 'c_' + Date.now(), name: name.trim(), target_unit: target_unit || 'all', description: description || '' };
+  if (pool) {
+    await pool.query('INSERT INTO categories (id, name, target_unit, description) VALUES ($1, $2, $3, $4)', [newC.id, newC.name, newC.target_unit, newC.description]);
+  }
+  const local = readDataLocal();
+  local.categories.push(newC);
+  writeDataLocal(local);
+  return newC;
+}
+
+async function updateCategory(id, name, target_unit, description) {
+  if (pool) {
+    await pool.query('UPDATE categories SET name=$1, target_unit=$2, description=$3 WHERE id=$4', [name.trim(), target_unit, description || '', id]);
+  }
+  const local = readDataLocal();
+  const idx = local.categories.findIndex(c => c.id === id);
+  if (idx !== -1) {
+    local.categories[idx] = { id, name: name.trim(), target_unit, description: description || '' };
+    writeDataLocal(local);
+  }
+  return { id, name: name.trim(), target_unit, description: description || '' };
+}
+
+async function deleteCategory(id) {
+  if (pool) {
+    await pool.query('DELETE FROM categories WHERE id = $1', [id]);
+  }
+  const local = readDataLocal();
+  local.categories = local.categories.filter(c => c.id !== id);
+  writeDataLocal(local);
+}
+
+async function getAccessories() {
+  if (pool) {
+    const res = await pool.query(`
+      SELECT a.*, b.name as brand_name, b.code as brand_code, c.name as category_name, c.target_unit as category_target_unit
+      FROM accessories a
+      LEFT JOIN brands b ON a.brand_id = b.id
+      LEFT JOIN categories c ON a.category_id = c.id
+      ORDER BY a.created_at DESC
+    `);
+    return res.rows.map(a => ({ ...a, quantity: Number(a.quantity), unit_cost: Number(a.unit_cost) }));
+  }
+  const local = readDataLocal();
+  return local.accessories.map(acc => {
+    const brand = local.brands.find(b => b.id === acc.brand_id) || { name: 'Unknown', code: 'UNK' };
+    const category = local.categories.find(c => c.id === acc.category_id) || { name: 'Uncategorized', target_unit: 'all' };
+    return {
+      ...acc,
+      brand_name: brand.name,
+      brand_code: brand.code,
+      category_name: category.name,
+      category_target_unit: category.target_unit
     };
+  });
+}
 
-    console.log(`Loaded ${inMemoryDb.brands.length} brands, ${inMemoryDb.categories.length} categories, ${inMemoryDb.accessories.length} accessories from PostgreSQL.`);
-    writeDataLocal(inMemoryDb);
-  } catch (err) {
-    console.error('Error loading data from PostgreSQL:', err);
+async function addAccessory(acc) {
+  const newAcc = {
+    id: acc.id || ('a_' + Date.now() + '_' + Math.round(Math.random() * 1000)),
+    brand_id: acc.brand_id,
+    category_id: acc.category_id,
+    style_code: acc.style_code.trim(),
+    color: (acc.color || 'Standard').trim(),
+    size: (acc.size || 'N/A').trim(),
+    quantity: Number(acc.quantity) || 0,
+    unit_cost: Number(acc.unit_cost) || 0.0,
+    image_url: acc.image_url || 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=300&q=80',
+    created_at: new Date().toISOString()
+  };
+
+  if (pool) {
+    await pool.query(
+      `INSERT INTO accessories (id, brand_id, category_id, style_code, color, size, quantity, unit_cost, image_url, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [newAcc.id, newAcc.brand_id, newAcc.category_id, newAcc.style_code, newAcc.color, newAcc.size, newAcc.quantity, newAcc.unit_cost, newAcc.image_url, newAcc.created_at]
+    );
+  }
+  const local = readDataLocal();
+  local.accessories.push(newAcc);
+  writeDataLocal(local);
+  return newAcc;
+}
+
+async function addAccessoryBatch(items) {
+  const created = [];
+  for (const item of items) {
+    const acc = await addAccessory(item);
+    created.push(acc);
+  }
+  return created;
+}
+
+async function updateAccessory(id, updates) {
+  if (pool) {
+    const fields = [];
+    const values = [];
+    let idx = 1;
+
+    if (updates.quantity !== undefined) { fields.push(`quantity = $${idx++}`); values.push(Number(updates.quantity)); }
+    if (updates.unit_cost !== undefined) { fields.push(`unit_cost = $${idx++}`); values.push(Number(updates.unit_cost)); }
+    if (updates.style_code) { fields.push(`style_code = $${idx++}`); values.push(updates.style_code.trim()); }
+    if (updates.color) { fields.push(`color = $${idx++}`); values.push(updates.color.trim()); }
+    if (updates.size) { fields.push(`size = $${idx++}`); values.push(updates.size.trim()); }
+    if (updates.image_url) { fields.push(`image_url = $${idx++}`); values.push(updates.image_url); }
+
+    if (fields.length > 0) {
+      values.push(id);
+      await pool.query(`UPDATE accessories SET ${fields.join(', ')} WHERE id = $${idx}`, values);
+    }
+  }
+
+  const local = readDataLocal();
+  const accIndex = local.accessories.findIndex(a => a.id === id);
+  if (accIndex !== -1) {
+    if (updates.quantity !== undefined) local.accessories[accIndex].quantity = Number(updates.quantity);
+    if (updates.unit_cost !== undefined) local.accessories[accIndex].unit_cost = Number(updates.unit_cost);
+    if (updates.style_code) local.accessories[accIndex].style_code = updates.style_code.trim();
+    if (updates.color) local.accessories[accIndex].color = updates.color.trim();
+    if (updates.size) local.accessories[accIndex].size = updates.size.trim();
+    if (updates.image_url) local.accessories[accIndex].image_url = updates.image_url;
+    writeDataLocal(local);
   }
 }
 
+// Synchronous fallbacks for legacy readers
 function readData() {
-  return inMemoryDb;
+  return readDataLocal();
 }
-
 function writeData(data) {
-  inMemoryDb = data;
   writeDataLocal(data);
-
-  if (pool && isPgReady) {
-    syncMemoryToPg(data).catch(err => console.error('PostgreSQL background sync error:', err));
-  }
-}
-
-// SAFE UPSERT SYNC (NEVER DELETES TABLES ON RESTART)
-async function syncMemoryToPg(data) {
-  if (!pool) return;
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-
-    // Upsert users
-    for (const u of data.users || []) {
-      await client.query(
-        'INSERT INTO users (id, username, name, role, password) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO UPDATE SET username=$2, name=$3, role=$4, password=$5',
-        [u.id, u.username, u.name, u.role, u.password]
-      );
-    }
-
-    // Upsert brands
-    for (const b of data.brands || []) {
-      await client.query(
-        'INSERT INTO brands (id, name, code) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET name=$2, code=$3',
-        [b.id, b.name, b.code]
-      );
-    }
-
-    // Upsert categories
-    for (const c of data.categories || []) {
-      await client.query(
-        'INSERT INTO categories (id, name, target_unit, description) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET name=$2, target_unit=$3, description=$4',
-        [c.id, c.name, c.target_unit || 'all', c.description || '']
-      );
-    }
-
-    // Upsert accessories
-    for (const a of data.accessories || []) {
-      await client.query(
-        `INSERT INTO accessories (id, brand_id, category_id, style_code, color, size, quantity, unit_cost, image_url, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-         ON CONFLICT (id) DO UPDATE SET brand_id=$2, category_id=$3, style_code=$4, color=$5, size=$6, quantity=$7, unit_cost=$8, image_url=$9`,
-        [a.id, a.brand_id, a.category_id, a.style_code, a.color, a.size, Number(a.quantity) || 0, Number(a.unit_cost) || 0, a.image_url || '', a.created_at || new Date().toISOString()]
-      );
-    }
-
-    // Upsert requests
-    for (const r of data.requests || []) {
-      await client.query(
-        `INSERT INTO requests (id, req_no, requester_id, requester_name, unit_type, lot_batch_no, status, remarks, extra_qty_notes, items, created_at, approved_at, ready_at, picked_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-         ON CONFLICT (id) DO UPDATE SET status=$7, remarks=$8, extra_qty_notes=$9, items=$10, approved_at=$12, ready_at=$13, picked_at=$14`,
-        [r.id, r.req_no, r.requester_id, r.requester_name, r.unit_type, r.lot_batch_no, r.status, r.remarks || '', r.extra_qty_notes || '', JSON.stringify(r.items || []), r.created_at || new Date().toISOString(), r.approved_at, r.ready_at, r.picked_at]
-      );
-    }
-
-    await client.query('COMMIT');
-  } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('PostgreSQL sync rollback:', err);
-  } finally {
-    client.release();
-  }
-}
-
-// Explicit Delete Helpers for PostgreSQL
-async function deleteBrandPg(id) {
-  if (pool) {
-    try {
-      await pool.query('DELETE FROM brands WHERE id = $1', [id]);
-    } catch (err) {
-      console.error('Error deleting brand from PG:', err);
-    }
-  }
-}
-
-async function deleteCategoryPg(id) {
-  if (pool) {
-    try {
-      await pool.query('DELETE FROM categories WHERE id = $1', [id]);
-    } catch (err) {
-      console.error('Error deleting category from PG:', err);
-    }
-  }
-}
-
-async function deleteAccessoryPg(id) {
-  if (pool) {
-    try {
-      await pool.query('DELETE FROM accessories WHERE id = $1', [id]);
-    } catch (err) {
-      console.error('Error deleting accessory from PG:', err);
-    }
-  }
 }
 
 module.exports = {
+  getBrands,
+  addBrand,
+  updateBrand,
+  deleteBrand,
+  getCategories,
+  addCategory,
+  updateCategory,
+  deleteCategory,
+  getAccessories,
+  addAccessory,
+  addAccessoryBatch,
+  updateAccessory,
   readData,
   writeData,
-  deleteBrandPg,
-  deleteCategoryPg,
-  deleteAccessoryPg,
   pool
 };
