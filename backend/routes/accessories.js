@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { readData, writeData } = require('../db');
+const { readData, writeData, deleteBrandPg, deleteCategoryPg, deleteAccessoryPg } = require('../db');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
@@ -69,7 +69,7 @@ router.put('/brands/:id', authenticateToken, requireRole(['owner', 'warehouse_ma
 });
 
 // DELETE brand (Owner & Manager)
-router.delete('/brands/:id', authenticateToken, requireRole(['owner', 'warehouse_manager']), (req, res) => {
+router.delete('/brands/:id', authenticateToken, requireRole(['owner', 'warehouse_manager']), async (req, res) => {
   const { id } = req.params;
   const db = readData();
   const idx = db.brands.findIndex(b => b.id === id);
@@ -77,6 +77,7 @@ router.delete('/brands/:id', authenticateToken, requireRole(['owner', 'warehouse
 
   const deleted = db.brands.splice(idx, 1)[0];
   writeData(db);
+  if (deleteBrandPg) await deleteBrandPg(id);
   res.json({ message: 'Brand deleted successfully', brand: deleted });
 });
 
@@ -120,7 +121,7 @@ router.put('/categories/:id', authenticateToken, requireRole(['owner', 'warehous
 });
 
 // DELETE category (Owner & Manager)
-router.delete('/categories/:id', authenticateToken, requireRole(['owner', 'warehouse_manager']), (req, res) => {
+router.delete('/categories/:id', authenticateToken, requireRole(['owner', 'warehouse_manager']), async (req, res) => {
   const { id } = req.params;
   const db = readData();
   const idx = db.categories.findIndex(c => c.id === id);
@@ -128,6 +129,7 @@ router.delete('/categories/:id', authenticateToken, requireRole(['owner', 'wareh
 
   const deleted = db.categories.splice(idx, 1)[0];
   writeData(db);
+  if (deleteCategoryPg) await deleteCategoryPg(id);
   res.json({ message: 'Category deleted successfully', category: deleted });
 });
 

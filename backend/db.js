@@ -173,10 +173,10 @@ async function loadFromPostgres() {
   if (!pool) return;
   try {
     const usersRes = await pool.query('SELECT * FROM users');
-    const brandsRes = await pool.query('SELECT * FROM brands');
-    const categoriesRes = await pool.query('SELECT * FROM categories');
-    const accessoriesRes = await pool.query('SELECT * FROM accessories');
-    const requestsRes = await pool.query('SELECT * FROM requests');
+    const brandsRes = await pool.query('SELECT * FROM brands ORDER BY name');
+    const categoriesRes = await pool.query('SELECT * FROM categories ORDER BY name');
+    const accessoriesRes = await pool.query('SELECT * FROM accessories ORDER BY created_at DESC');
+    const requestsRes = await pool.query('SELECT * FROM requests ORDER BY created_at DESC');
 
     inMemoryDb = {
       users: usersRes.rows,
@@ -206,6 +206,7 @@ function writeData(data) {
   }
 }
 
+// SAFE UPSERT SYNC (NEVER DELETES TABLES ON RESTART)
 async function syncMemoryToPg(data) {
   if (!pool) return;
   const client = await pool.connect();
@@ -227,13 +228,6 @@ async function syncMemoryToPg(data) {
         [b.id, b.name, b.code]
       );
     }
-    // Delete removed brands from DB
-    const currentBrandIds = (data.brands || []).map(b => b.id);
-    if (currentBrandIds.length > 0) {
-      await client.query('DELETE FROM brands WHERE id NOT IN (' + currentBrandIds.map((_, i) => '$' + (i + 1)).join(',') + ')', currentBrandIds);
-    } else {
-      await client.query('DELETE FROM brands');
-    }
 
     // Upsert categories
     for (const c of data.categories || []) {
@@ -241,13 +235,6 @@ async function syncMemoryToPg(data) {
         'INSERT INTO categories (id, name, target_unit, description) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET name=$2, target_unit=$3, description=$4',
         [c.id, c.name, c.target_unit || 'all', c.description || '']
       );
-    }
-    // Delete removed categories from DB
-    const currentCatIds = (data.categories || []).map(c => c.id);
-    if (currentCatIds.length > 0) {
-      await client.query('DELETE FROM categories WHERE id NOT IN (' + currentCatIds.map((_, i) => '$' + (i + 1)).join(',') + ')', currentCatIds);
-    } else {
-      await client.query('DELETE FROM categories');
     }
 
     // Upsert accessories
@@ -259,12 +246,6 @@ async function syncMemoryToPg(data) {
         [a.id, a.brand_id, a.category_id, a.style_code, a.color, a.size, Number(a.quantity) || 0, Number(a.unit_cost) || 0, a.image_url || '', a.created_at || new Date().toISOString()]
       );
     }
-    const currentAccIds = (data.accessories || []).map(a => a.id);
-    if (currentAccIds.length > 0) {
-      await client.query('DELETE FROM accessories WHERE id NOT IN (' + currentAccIds.map((_, i) => '$' + (i + 1)).join(',') + ')', currentAccIds);
-    } else {
-      await client.query('DELETE FROM accessories');
-    }
 
     // Upsert requests
     for (const r of data.requests || []) {
@@ -274,12 +255,6 @@ async function syncMemoryToPg(data) {
          ON CONFLICT (id) DO UPDATE SET status=$7, remarks=$8, extra_qty_notes=$9, items=$10, approved_at=$12, ready_at=$13, picked_at=$14`,
         [r.id, r.req_no, r.requester_id, r.requester_name, r.unit_type, r.lot_batch_no, r.status, r.remarks || '', r.extra_qty_notes || '', JSON.stringify(r.items || []), r.created_at || new Date().toISOString(), r.approved_at, r.ready_at, r.picked_at]
       );
-    }
-    const currentReqIds = (data.requests || []).map(r => r.id);
-    if (currentReqIds.length > 0) {
-      await client.query('DELETE FROM requests WHERE id NOT IN (' + currentReqIds.map((_, i) => '$' + (i + 1)).join(',') + ')', currentReqIds);
-    } else {
-      await client.query('DELETE FROM requests');
     }
 
     await client.query('COMMIT');
@@ -291,8 +266,42 @@ async function syncMemoryToPg(data) {
   }
 }
 
+// Explicit Delete Helpers for PostgreSQL
+async function deleteBrandPg(id) {
+  if (pool) {
+    try {
+      await pool.query('DELETE FROM brands WHERE id = $1', [id]);
+    } catch (err) {
+      console.error('Error deleting brand from PG:', err);
+    }
+  }
+}
+
+async function deleteCategoryPg(id) {
+  if (pool) {
+    try {
+      await pool.query('DELETE FROM categories WHERE id = $1', [id]);
+    } catch (err) {
+      console.error('Error deleting category from PG:', err);
+    }
+  }
+}
+
+async function deleteAccessoryPg(id) {
+  if (pool) {
+    try {
+      await pool.query('DELETE FROM accessories WHERE id = $1', [id]);
+    } catch (err) {
+      console.error('Error deleting accessory from PG:', err);
+    }
+  }
+}
+
 module.exports = {
   readData,
   writeData,
+  deleteBrandPg,
+  deleteCategoryPg,
+  deleteAccessoryPg,
   pool
 };
