@@ -91,6 +91,30 @@ function MainApp() {
     }
   };
 
+  const handleSaveBatch = async (batchItems) => {
+    try {
+      const token = localStorage.getItem('kaypee_token') || 'owner';
+      const res = await fetch('/api/accessories/batch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ items: batchItems })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Failed to add variation items');
+        return;
+      }
+      fetchData();
+      alert(`Successfully added ${batchItems.length} variation items inward!`);
+    } catch (err) {
+      console.error('Batch save error:', err);
+      alert('Error saving batch variations: ' + err.message);
+    }
+  };
+
   // Requisition CRUD
   const handleCreateRequest = async (reqData) => {
     try {
@@ -355,6 +379,7 @@ function MainApp() {
         isOpen={isAddStockOpen}
         onClose={() => setIsAddStockOpen(false)}
         onSave={handleSaveStock}
+        onSaveBatch={handleSaveBatch}
         editingItem={editingStockItem}
         brands={brands}
         categories={categories}

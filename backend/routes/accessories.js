@@ -163,6 +163,40 @@ router.get('/accessories', authenticateToken, (req, res) => {
   res.json(items);
 });
 
+// POST add batch of multi-variation accessory items (Owner & Manager)
+router.post('/accessories/batch', authenticateToken, requireRole(['owner', 'warehouse_manager']), (req, res) => {
+  const { items } = req.body;
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'Array of accessory items is required' });
+  }
+
+  const db = readData();
+  const createdItems = [];
+
+  for (const item of items) {
+    const { brand_id, category_id, style_code, color, size, quantity, unit_cost, image_url } = item;
+    if (!brand_id || !category_id || !style_code || quantity === undefined) continue;
+
+    const newAcc = {
+      id: 'a_' + Date.now() + '_' + Math.round(Math.random() * 1000),
+      brand_id,
+      category_id,
+      style_code: style_code.trim(),
+      color: (color || 'Standard').trim(),
+      size: (size || 'N/A').trim(),
+      quantity: Number(quantity) || 0,
+      unit_cost: Number(unit_cost) || 0.0,
+      image_url: image_url || 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=300&q=80',
+      created_at: new Date().toISOString()
+    };
+    db.accessories.push(newAcc);
+    createdItems.push(newAcc);
+  }
+
+  writeData(db);
+  res.status(201).json({ message: `Successfully added ${createdItems.length} variation items`, items: createdItems });
+});
+
 // POST add accessory stock (Owner & Manager)
 router.post('/accessories', authenticateToken, requireRole(['owner', 'warehouse_manager']), (req, res) => {
   const { brand_id, category_id, style_code, color, size, quantity, unit_cost, image_url } = req.body;
