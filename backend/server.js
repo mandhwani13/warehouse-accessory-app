@@ -11,6 +11,22 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+const MIME_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.mjs': 'application/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2'
+};
+
 // Simple token helper
 function parseAuthToken(req) {
   const authHeader = req.headers['authorization'] || '';
@@ -403,10 +419,12 @@ const server = http.createServer((req, res) => {
   let requestedFile = path.join(distDir, pathname === '/' ? 'index.html' : pathname);
 
   if (fs.existsSync(requestedFile) && fs.statSync(requestedFile).isFile()) {
-    res.writeHead(200);
+    const ext = path.extname(requestedFile).toLowerCase();
+    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    res.writeHead(200, { 'Content-Type': contentType });
     return fs.createReadStream(requestedFile).pipe(res);
   } else if (fs.existsSync(path.join(distDir, 'index.html'))) {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     return fs.createReadStream(path.join(distDir, 'index.html')).pipe(res);
   }
 
