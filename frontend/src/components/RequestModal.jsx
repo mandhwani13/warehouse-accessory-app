@@ -64,14 +64,14 @@ export const RequestModal = ({ isOpen, onClose, accessories, onCreateRequest }) 
 
   return (
     <div className="modal-overlay">
-      <div className="modal-container" style={{ maxWidth: '700px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+      <div className="modal-container" style={{ maxWidth: '720px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
           <div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f8fafc' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
               Create Requisition Pass Request
             </h3>
-            <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-              Unit: <strong style={{ color: '#60a5fa' }}>{user?.name}</strong> ({user?.role})
+            <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
+              Unit: <strong style={{ color: '#2563eb' }}>{user?.name}</strong> ({user?.role})
             </p>
           </div>
           <button onClick={onClose} className="btn btn-outline btn-sm" style={{ padding: '4px 8px' }}>
@@ -82,7 +82,7 @@ export const RequestModal = ({ isOpen, onClose, accessories, onCreateRequest }) 
         <form onSubmit={handleSubmit}>
           {/* Lot/Batch Number */}
           <div className="form-group">
-            <label style={{ color: '#fbbf24', fontWeight: 600 }}>
+            <label style={{ color: '#b45309', fontWeight: 700 }}>
               Batch Number / Lot Number * (Required)
             </label>
             <input
@@ -109,7 +109,7 @@ export const RequestModal = ({ isOpen, onClose, accessories, onCreateRequest }) 
           {/* Requested Accessories List */}
           <div style={{ marginTop: '20px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <label style={{ fontWeight: 600, color: '#f8fafc' }}>Select Accessories Required</label>
+              <label style={{ fontWeight: 700, color: '#0f172a' }}>Select Accessories Required</label>
               <button type="button" onClick={handleAddItem} className="btn btn-outline btn-sm">
                 <Plus size={14} /> Add Item Line
               </button>
@@ -119,12 +119,13 @@ export const RequestModal = ({ isOpen, onClose, accessories, onCreateRequest }) 
               const selectedAcc = allowedAccessories.find(a => a.id === item.accessory_id);
               return (
                 <div key={idx} className="glass-card" style={{
-                  padding: '12px',
+                  padding: '14px',
                   marginBottom: '10px',
                   display: 'grid',
-                  gridTemplateColumns: '1.5fr 1fr auto',
-                  gap: '10px',
-                  alignItems: 'center'
+                  gridTemplateColumns: '1.8fr 1fr auto',
+                  gap: '12px',
+                  alignItems: 'center',
+                  background: '#f8fafc'
                 }}>
                   {/* Accessory Dropdown */}
                   <div>
@@ -134,17 +135,17 @@ export const RequestModal = ({ isOpen, onClose, accessories, onCreateRequest }) 
                       onChange={(e) => handleItemChange(idx, 'accessory_id', e.target.value)}
                       required
                     >
-                      <option value="">-- Choose Accessory --</option>
+                      <option value="">-- Choose Accessory Style Code & Variation --</option>
                       {allowedAccessories.map(acc => (
                         <option key={acc.id} value={acc.id}>
-                          [{acc.brand_name}] {acc.style_code} ({acc.category_name} | {acc.color} | Sz: {acc.size}) - Stock: {acc.quantity}
+                          [{acc.brand_name}] Style: {acc.style_code} ({acc.category_name} | {acc.color} | Sz: {acc.size}) - Avail: {acc.quantity} Pcs
                         </option>
                       ))}
                     </select>
 
                     {selectedAcc && (
-                      <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>
-                        Avail. Stock: <strong style={{ color: '#34d399' }}>{selectedAcc.quantity} Pcs</strong> | Brand: {selectedAcc.brand_name}
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
+                        Avail. Stock: <strong style={{ color: '#059669' }}>{selectedAcc.quantity} Pcs</strong> | Brand: {selectedAcc.brand_name}
                       </p>
                     )}
                   </div>
@@ -169,7 +170,7 @@ export const RequestModal = ({ isOpen, onClose, accessories, onCreateRequest }) 
                         type="button"
                         onClick={() => handleRemoveItem(idx)}
                         className="btn btn-outline btn-sm"
-                        style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)' }}
+                        style={{ color: '#dc2626', borderColor: '#fca5a5', padding: '6px 8px' }}
                       >
                         <Trash2 size={16} />
                       </button>
