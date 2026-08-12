@@ -1,0 +1,104 @@
+@media print {
+  @page {
+    size: 105mm 148mm;
+    margin: 4mm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-challan, #printable-challan * {
+    visibility: visible;
+  }
+
+  #printable-challan {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 97mm;
+    min-height: 140mm;
+    padding: 2mm;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 8.5pt;
+    line-height: 1.25;
+    box-sizing: border-box;
+  }
+
+  .challan-header {
+    text-align: center;
+    border-bottom: 2px solid #000;
+    padding-bottom: 3px;
+    margin-bottom: 6px;
+  }
+
+  .challan-title {
+    font-size: 11pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .challan-subtitle {
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .challan-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-bottom: 6px;
+    background: #f3f4f6;
+    padding: 4px;
+    border-radius: 3px;
+    font-size: 8pt;
+  }
+
+  .challan-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+  }
+
+  .challan-table th {
+    background: #e5e7eb;
+    border: 1px solid #000;
+    padding: 3px 2px;
+    font-size: 7.5pt;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .challan-table td {
+    border: 1px solid #666;
+    padding: 3px 2px;
+    font-size: 7.5pt;
+  }
+
+  .challan-extra-box {
+    border: 1px dashed #d97706;
+    background: #fffbeb;
+    padding: 4px;
+    font-size: 7.5pt;
+    margin-bottom: 8px;
+  }
+
+  .challan-signatures {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .signature-box {
+    border-top: 1px solid #000;
+    padding-top: 4px;
+    text-align: center;
+    font-size: 7.5pt;
+    font-weight: 600;
+  }
+}

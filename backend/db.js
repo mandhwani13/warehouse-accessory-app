@@ -1,0 +1,139 @@
+const fs = require('fs');
+const path = require('path');
+
+const DB_FILE = path.join(__dirname, 'data.json');
+
+const defaultData = {
+  users: [
+    { id: 'u1', username: 'owner', name: 'Master Owner', role: 'owner', password: 'password123' },
+    { id: 'u2', username: 'manager', name: 'Warehouse Manager', role: 'warehouse_manager', password: 'password123' },
+    { id: 'u3', username: 'picker', name: 'Accessory Picker', role: 'accessory_picker', password: 'password123' },
+    { id: 'u4', username: 'stitching', name: 'Stitching Unit Lead', role: 'job_work_stitching', password: 'password123' },
+    { id: 'u5', username: 'finishing', name: 'Finishing Unit Lead', role: 'job_work_finishing', password: 'password123' }
+  ],
+  brands: [
+    { id: 'b1', name: "Kaypee Denim", code: 'KPD' },
+    { id: 'b2', name: 'Urban Stitch', code: 'UST' },
+    { id: 'b3', name: 'Royal Apparel', code: 'RAP' }
+  ],
+  categories: [
+    { id: 'c1', name: 'Size Label', target_unit: 'job_work_stitching', description: 'Woven size tags (28-50)' },
+    { id: 'c2', name: 'Rivet', target_unit: 'job_work_stitching', description: 'Brass & copper pocket rivets' },
+    { id: 'c3', name: 'Jeans Button', target_unit: 'all', description: 'Metallic shank buttons' },
+    { id: 'c4', name: 'Sewing Thread', target_unit: 'job_work_stitching', description: 'High tenacity poly thread' },
+    { id: 'c5', name: 'Hang Tag', target_unit: 'job_work_finishing', description: 'Cardboard brand price tag' },
+    { id: 'c6', name: 'Polybag', target_unit: 'job_work_finishing', description: 'Self-seal packing polybag' },
+    { id: 'c7', name: 'Wash Care Label', target_unit: 'job_work_finishing', description: 'Satin printed wash instructions' }
+  ],
+  accessories: [
+    {
+      id: 'a1',
+      brand_id: 'b1',
+      category_id: 'c1',
+      style_code: 'KP-JEAN-501',
+      color: 'Navy Blue / White',
+      size: '32',
+      quantity: 1500,
+      unit_cost: 1.50,
+      image_url: 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=300&q=80',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'a2',
+      brand_id: 'b1',
+      category_id: 'c1',
+      style_code: 'KP-JEAN-501',
+      color: 'Navy Blue / White',
+      size: '34',
+      quantity: 1200,
+      unit_cost: 1.50,
+      image_url: 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=300&q=80',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'a3',
+      brand_id: 'b1',
+      category_id: 'c2',
+      style_code: 'KP-RIVET-BR',
+      color: 'Antique Brass',
+      size: 'Standard',
+      quantity: 10000,
+      unit_cost: 0.45,
+      image_url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300&q=80',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'a4',
+      brand_id: 'b2',
+      category_id: 'c5',
+      style_code: 'UST-TAG-2026',
+      color: 'Black / Gold Foil',
+      size: 'Medium',
+      quantity: 5000,
+      unit_cost: 3.20,
+      image_url: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=300&q=80',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'a5',
+      brand_id: 'b2',
+      category_id: 'c6',
+      style_code: 'BAG-EXP-12',
+      color: 'Transparent',
+      size: '14x18 Inch',
+      quantity: 8000,
+      unit_cost: 2.10,
+      image_url: 'https://images.unsplash.com/photo-1528458909336-e7a0adfac1d5?w=300&q=80',
+      created_at: new Date().toISOString()
+    }
+  ],
+  requests: [
+    {
+      id: 'r1',
+      req_no: 'REQ-2026-001',
+      requester_id: 'u4',
+      requester_name: 'Stitching Unit Lead',
+      unit_type: 'job_work_stitching',
+      lot_batch_no: 'LOT-2026-889A',
+      status: 'approved',
+      remarks: 'Urgent for Lot 889A stitching start',
+      extra_qty_notes: 'Added 50 extra size 32 labels as backup',
+      items: [
+        { accessory_id: 'a1', requested_qty: 200, approved_qty: 250, picked_qty: 250 },
+        { accessory_id: 'a3', requested_qty: 1000, approved_qty: 1000, picked_qty: 1000 }
+      ],
+      created_at: new Date(Date.now() - 86400000).toISOString(),
+      approved_at: new Date(Date.now() - 43200000).toISOString(),
+      ready_at: new Date(Date.now() - 21600000).toISOString(),
+      picked_at: null
+    }
+  ]
+};
+
+function readData() {
+  try {
+    if (!fs.existsSync(DB_FILE)) {
+      writeData(defaultData);
+      return defaultData;
+    }
+    const dataStr = fs.readFileSync(DB_FILE, 'utf8');
+    return JSON.parse(dataStr);
+  } catch (err) {
+    console.error('Error reading DB file, reinitializing:', err);
+    writeData(defaultData);
+    return defaultData;
+  }
+}
+
+function writeData(data) {
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error writing DB file:', err);
+  }
+}
+
+module.exports = {
+  readData,
+  writeData
+};
