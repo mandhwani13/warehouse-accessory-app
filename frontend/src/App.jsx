@@ -67,7 +67,7 @@ function MainApp() {
   // Stock CRUD
   const handleSaveStock = async (stockData) => {
     try {
-      const token = localStorage.getItem('kaypee_token');
+      const token = localStorage.getItem('kaypee_token') || 'owner';
       const method = stockData.id ? 'PUT' : 'POST';
       const url = stockData.id ? `/api/accessories/${stockData.id}` : '/api/accessories';
 
@@ -79,18 +79,22 @@ function MainApp() {
         },
         body: JSON.stringify(stockData)
       });
-      if (res.ok) {
-        fetchData();
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Failed to save stock item');
+        return;
       }
+      fetchData();
     } catch (err) {
       console.error('Save stock error:', err);
+      alert('Error saving stock: ' + err.message);
     }
   };
 
   // Requisition CRUD
   const handleCreateRequest = async (reqData) => {
     try {
-      const token = localStorage.getItem('kaypee_token');
+      const token = localStorage.getItem('kaypee_token') || 'owner';
       const url = reqData.id ? `/api/requests/${reqData.id}` : '/api/requests';
       const method = reqData.id ? 'PUT' : 'POST';
 
@@ -102,18 +106,23 @@ function MainApp() {
         },
         body: JSON.stringify(reqData)
       });
-      if (res.ok) {
-        fetchData();
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Failed to submit requisition request');
+        return;
       }
+      fetchData();
+      alert(`Requisition Pass ${data.req_no || ''} submitted successfully!`);
     } catch (err) {
       console.error('Request creation error:', err);
+      alert('Error creating request: ' + err.message);
     }
   };
 
   // Approval & Workflow Actions
   const handleApproveRequest = async (id, approvePayload) => {
     try {
-      const token = localStorage.getItem('kaypee_token');
+      const token = localStorage.getItem('kaypee_token') || 'owner';
       const res = await fetch(`/api/requests/${id}/approve`, {
         method: 'POST',
         headers: {
@@ -133,7 +142,7 @@ function MainApp() {
 
   const handleMarkReady = async (id) => {
     try {
-      const token = localStorage.getItem('kaypee_token');
+      const token = localStorage.getItem('kaypee_token') || 'owner';
       const res = await fetch(`/api/requests/${id}/ready`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -149,7 +158,7 @@ function MainApp() {
 
   const handleMarkPicked = async (id) => {
     try {
-      const token = localStorage.getItem('kaypee_token');
+      const token = localStorage.getItem('kaypee_token') || 'owner';
       const res = await fetch(`/api/requests/${id}/picked`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -166,7 +175,7 @@ function MainApp() {
   // Brand / Category Creation
   const handleAddBrand = async (brandData) => {
     try {
-      const token = localStorage.getItem('kaypee_token');
+      const token = localStorage.getItem('kaypee_token') || 'owner';
       const res = await fetch('/api/brands', {
         method: 'POST',
         headers: {
@@ -175,15 +184,23 @@ function MainApp() {
         },
         body: JSON.stringify(brandData)
       });
-      if (res.ok) fetchData();
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Failed to add brand');
+        return;
+      }
+      setBrands(prev => [...prev, data]);
+      fetchData();
+      alert(`Brand "${data.name}" added successfully!`);
     } catch (err) {
       console.error('Add brand error:', err);
+      alert('Error adding brand: ' + err.message);
     }
   };
 
   const handleAddCategory = async (catData) => {
     try {
-      const token = localStorage.getItem('kaypee_token');
+      const token = localStorage.getItem('kaypee_token') || 'owner';
       const res = await fetch('/api/categories', {
         method: 'POST',
         headers: {
@@ -192,9 +209,17 @@ function MainApp() {
         },
         body: JSON.stringify(catData)
       });
-      if (res.ok) fetchData();
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Failed to add accessory type');
+        return;
+      }
+      setCategories(prev => [...prev, data]);
+      fetchData();
+      alert(`Accessory Type "${data.name}" added successfully!`);
     } catch (err) {
       console.error('Add category error:', err);
+      alert('Error adding accessory type: ' + err.message);
     }
   };
 
