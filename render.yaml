@@ -2,7 +2,7 @@ services:
   - type: web
     name: warehouse-accessory-app
     env: node
-    buildCommand: npm run install-all && npm run build
+    buildCommand: npm run build
     startCommand: npm start
     envVars:
       - key: PORT
