@@ -232,6 +232,8 @@ function MainApp() {
             brands={brands}
             categories={categories}
             onEditStock={(item) => { setEditingStockItem(item); setIsAddStockOpen(true); }}
+            onOpenBrandModal={() => setIsBrandModalOpen(true)}
+            onOpenAddStock={() => { setEditingStockItem(null); setIsAddStockOpen(true); }}
           />
         )}
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { X, CheckCircle, Clock, PackageCheck, Truck, Printer, Edit2, PlusCircle, AlertCircle } from 'lucide-react';
+import { X, CheckCircle, Clock, PackageCheck, Truck, Printer, PlusCircle } from 'lucide-react';
 
 export const RequestDetailsModal = ({ isOpen, onClose, request, onApprove, onMarkReady, onMarkPicked, onPrint }) => {
   const { user } = useAuth();
@@ -58,14 +58,14 @@ export const RequestDetailsModal = ({ isOpen, onClose, request, onApprove, onMar
     <div className="modal-overlay">
       <div className="modal-container" style={{ maxWidth: '750px' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid #334155', paddingBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#60a5fa' }}>{request.req_no}</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#2563eb' }}>{request.req_no}</h3>
               {getStatusBadge(request.status)}
             </div>
-            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px' }}>
-              Lot / Batch #: <strong style={{ color: '#fbbf24' }}>{request.lot_batch_no}</strong> | Unit: {request.requester_name}
+            <p style={{ fontSize: '0.85rem', color: '#475569', marginTop: '4px', fontWeight: 500 }}>
+              Lot / Batch #: <strong style={{ color: '#b45309' }}>{request.lot_batch_no}</strong> | Unit: {request.requester_name}
             </p>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -79,20 +79,20 @@ export const RequestDetailsModal = ({ isOpen, onClose, request, onApprove, onMar
         </div>
 
         {/* Workflow Timeline Status */}
-        <div className="glass-card" style={{ padding: '12px', marginBottom: '20px', display: 'flex', justifyContent: 'space-around', fontSize: '0.75rem', textAlign: 'center' }}>
-          <div style={{ color: request.created_at ? '#34d399' : '#64748b' }}>
+        <div className="glass-card" style={{ padding: '12px', marginBottom: '20px', display: 'flex', justifyContent: 'space-around', fontSize: '0.75rem', textAlign: 'center', background: '#f8fafc' }}>
+          <div style={{ color: request.created_at ? '#059669' : '#94a3b8' }}>
             <strong>1. Created</strong>
             <p>{new Date(request.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
           </div>
-          <div style={{ color: request.approved_at ? '#34d399' : '#64748b' }}>
+          <div style={{ color: request.approved_at ? '#059669' : '#94a3b8' }}>
             <strong>2. Manager Approval</strong>
             <p>{request.approved_at ? new Date(request.approved_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Pending'}</p>
           </div>
-          <div style={{ color: request.ready_at ? '#34d399' : '#64748b' }}>
+          <div style={{ color: request.ready_at ? '#059669' : '#94a3b8' }}>
             <strong>3. Picker Ready</strong>
             <p>{request.ready_at ? new Date(request.ready_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Pending'}</p>
           </div>
-          <div style={{ color: request.picked_at ? '#34d399' : '#64748b' }}>
+          <div style={{ color: request.picked_at ? '#059669' : '#94a3b8' }}>
             <strong>4. Picked Up</strong>
             <p>{request.picked_at ? new Date(request.picked_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Pending'}</p>
           </div>
@@ -100,13 +100,13 @@ export const RequestDetailsModal = ({ isOpen, onClose, request, onApprove, onMar
 
         {/* Items Table */}
         <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f8fafc', marginBottom: '10px' }}>
+          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginBottom: '10px' }}>
             Requested Accessory Items List
           </h4>
 
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
             <thead>
-              <tr style={{ background: '#0f172a', borderBottom: '1px solid #334155', textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8' }}>
+              <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1', textTransform: 'uppercase', fontSize: '0.75rem', color: '#475569' }}>
                 <th style={{ padding: '8px', textAlign: 'left' }}>Item / Brand / Style</th>
                 <th style={{ padding: '8px', textAlign: 'center' }}>Size & Color</th>
                 <th style={{ padding: '8px', textAlign: 'right' }}>Req. Qty</th>
@@ -118,29 +118,29 @@ export const RequestDetailsModal = ({ isOpen, onClose, request, onApprove, onMar
               {(request.items || []).map((item, idx) => {
                 const approvedItem = approvedItems[idx] || {};
                 return (
-                  <tr key={idx} style={{ borderBottom: '1px solid #1e293b' }}>
+                  <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ padding: '10px 8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <img
                           src={item.image_url || 'https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=300&q=80'}
                           alt={item.style_code}
-                          style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '4px' }}
+                          style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #e2e8f0' }}
                         />
                         <div>
-                          <strong style={{ color: '#f8fafc', display: 'block' }}>{item.style_code}</strong>
-                          <span style={{ fontSize: '0.75rem', color: '#60a5fa' }}>{item.brand_name} ({item.category_name})</span>
+                          <strong style={{ color: '#0f172a', display: 'block' }}>{item.style_code}</strong>
+                          <span style={{ fontSize: '0.75rem', color: '#2563eb' }}>{item.brand_name} ({item.category_name})</span>
                         </div>
                       </div>
                     </td>
 
                     <td style={{ padding: '10px 8px', textAlign: 'center' }}>
-                      <span style={{ background: '#0f172a', padding: '2px 8px', borderRadius: '4px', color: '#cbd5e1' }}>
+                      <span style={{ background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', color: '#334155', fontWeight: 600 }}>
                         Sz: {item.size}
                       </span>
-                      <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>{item.color}</p>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>{item.color}</p>
                     </td>
 
-                    <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 600, color: '#f8fafc' }}>
+                    <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>
                       {item.requested_qty} Pcs
                     </td>
 
@@ -155,7 +155,7 @@ export const RequestDetailsModal = ({ isOpen, onClose, request, onApprove, onMar
                           onChange={(e) => handleQtyChange(idx, 'approved_qty', e.target.value)}
                         />
                       ) : (
-                        <strong style={{ color: '#34d399' }}>{item.approved_qty || item.requested_qty} Pcs</strong>
+                        <strong style={{ color: '#059669' }}>{item.approved_qty || item.requested_qty} Pcs</strong>
                       )}
                     </td>
 
@@ -166,12 +166,12 @@ export const RequestDetailsModal = ({ isOpen, onClose, request, onApprove, onMar
                             type="number"
                             min="0"
                             className="form-control"
-                            style={{ width: '80px', textAlign: 'right', padding: '4px 6px', color: '#fbbf24' }}
+                            style={{ width: '80px', textAlign: 'right', padding: '4px 6px', color: '#b45309', fontWeight: 'bold' }}
                             value={approvedItem.extra_qty}
                             onChange={(e) => handleQtyChange(idx, 'extra_qty', e.target.value)}
                           />
                         ) : (
-                          <strong style={{ color: '#fbbf24' }}>+{item.extra_qty || 0} Pcs</strong>
+                          <strong style={{ color: '#b45309' }}>+{item.extra_qty || 0} Pcs</strong>
                         )}
                       </td>
                     )}
@@ -184,12 +184,12 @@ export const RequestDetailsModal = ({ isOpen, onClose, request, onApprove, onMar
 
         {/* Manager Toggle for Extra Accessories */}
         {canApprove && request.status === 'pending' && (
-          <div className="glass-card" style={{ padding: '12px', marginBottom: '20px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+          <div className="glass-card" style={{ padding: '12px', marginBottom: '20px', background: '#fef3c7', border: '1px solid #fde68a' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <PlusCircle size={18} className="text-amber-400" />
-                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#fbbf24' }}>
-                  Warehouse Manager Extra Accessory issuing Toggle
+                <PlusCircle size={18} className="text-amber-700" />
+                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#78350f' }}>
+                  Warehouse Manager Extra Accessory Issuing Toggle
                 </span>
               </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -198,13 +198,13 @@ export const RequestDetailsModal = ({ isOpen, onClose, request, onApprove, onMar
                   checked={showExtraToggle}
                   onChange={(e) => setShowExtraToggle(e.target.checked)}
                 />
-                <span style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>Issue Extra Quantities</span>
+                <span style={{ fontSize: '0.8rem', color: '#78350f', fontWeight: 600 }}>Issue Extra Quantities</span>
               </label>
             </div>
 
             {showExtraToggle && (
               <div style={{ marginTop: '10px' }}>
-                <label style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Extra Issue Explanation / Remarks</label>
+                <label style={{ fontSize: '0.75rem', color: '#92400e', fontWeight: 600 }}>Extra Issue Explanation / Remarks</label>
                 <input
                   type="text"
                   className="form-control"
@@ -218,7 +218,7 @@ export const RequestDetailsModal = ({ isOpen, onClose, request, onApprove, onMar
         )}
 
         {/* Action Buttons based on status */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', borderTop: '1px solid #334155', paddingTop: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
           <div>
             <button onClick={() => onPrint(request)} className="btn btn-outline">
               <Printer size={16} /> Print Gate Pass (A6)
@@ -233,7 +233,7 @@ export const RequestDetailsModal = ({ isOpen, onClose, request, onApprove, onMar
             )}
 
             {request.status === 'approved' && canPick && (
-              <button onClick={() => onMarkReady(request.id)} className="btn btn-primary" style={{ background: '#8b5cf6' }}>
+              <button onClick={() => onMarkReady(request.id)} className="btn btn-primary" style={{ background: '#7c3aed' }}>
                 <PackageCheck size={16} /> Mark "Ready for Pickup"
               </button>
             )}

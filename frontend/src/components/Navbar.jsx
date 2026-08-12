@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Warehouse, ClipboardList, DollarSign, Users, PlusCircle, Tags } from 'lucide-react';
+import { Warehouse, ClipboardList, DollarSign, Users, PlusCircle, Tag, Layers } from 'lucide-react';
 
 export const Navbar = ({ activeTab, setActiveTab, onOpenAddStock, onOpenRequestModal, onOpenBrandModal, onOpenUserModal, pendingCount }) => {
   const { user } = useAuth();
@@ -29,41 +29,42 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenAddStock, onOpenRequestM
 
   return (
     <header className="no-print" style={{
-      background: 'rgba(15, 23, 42, 0.95)',
-      backdropFilter: 'blur(12px)',
-      borderBottom: '1px solid #1e293b',
+      background: '#ffffff',
+      borderBottom: '1px solid #e2e8f0',
       padding: '12px 24px',
       position: 'sticky',
       top: 0,
-      zIndex: 50
+      zIndex: 50,
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
     }}>
       <div style={{
         maxWidth: '1280px',
         margin: '0 auto',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justify: 'space-between',
         flexWrap: 'wrap',
         gap: '16px'
       }}>
         {/* Brand Title */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
-            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+            background: '#2563eb',
             padding: '10px',
             borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+            justify: 'center',
+            color: '#ffffff',
+            boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)'
           }}>
-            <Warehouse size={24} color="#ffffff" />
+            <Warehouse size={22} />
           </div>
           <div>
-            <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f8fafc', letterSpacing: '-0.5px' }}>
-              KAYPEE <span style={{ color: '#60a5fa' }}>ACCESSORIES</span>
+            <h1 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>
+              KAYPEE <span style={{ color: '#2563eb' }}>ACCESSORIES</span>
             </h1>
-            <p style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Warehouse Stock & Requisition Pass System</p>
+            <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Warehouse Stock & Requisition System</p>
           </div>
         </div>
 
@@ -99,7 +100,7 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenAddStock, onOpenRequestM
                 height: '18px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justify: 'center'
               }}>
                 {pendingCount}
               </span>
@@ -112,20 +113,21 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenAddStock, onOpenRequestM
               className={`btn ${activeTab === 'valuation' ? 'btn-primary' : 'btn-outline'}`}
               style={{ padding: '8px 14px', fontSize: '0.85rem' }}
             >
-              <DollarSign size={16} className="text-amber-400" />
+              <DollarSign size={16} />
               Master Valuation
             </button>
           )}
         </nav>
 
-        {/* User Badge & Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Action Buttons for Adding Brand, Category, Stock & User Rights */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {['owner', 'warehouse_manager'].includes(user?.role) && (
             <>
-              <button onClick={onOpenBrandModal} className="btn btn-outline btn-sm">
-                <Tags size={14} />
-                Brands
+              <button onClick={onOpenBrandModal} className="btn btn-outline btn-sm" title="Add Brand or Accessory Type">
+                <Tag size={14} className="text-blue-600" />
+                + Add Brand / Type
               </button>
+
               <button onClick={onOpenAddStock} className="btn btn-primary btn-sm">
                 <PlusCircle size={14} />
                 + Add Stock
@@ -141,14 +143,14 @@ export const Navbar = ({ activeTab, setActiveTab, onOpenAddStock, onOpenRequestM
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginLeft: '6px' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>{user?.name}</span>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>{user?.name}</span>
             <span className={`badge ${getRoleBadgeClass(user?.role)}`}>
               {formatRoleName(user?.role)}
             </span>
           </div>
 
           {user?.role === 'owner' && (
-            <button onClick={onOpenUserModal} title="Manage User Logins" className="btn btn-outline btn-sm" style={{ padding: '6px' }}>
+            <button onClick={onOpenUserModal} title="Manage User Logins" className="btn btn-outline btn-sm" style={{ padding: '6px 10px' }}>
               <Users size={16} />
             </button>
           )}

@@ -26,8 +26,8 @@ export const RequisitionsList = ({ requests, onSelectRequest, onEditPending, onP
       {/* Header & Status Filter Pills */}
       <div className="glass-card" style={{ padding: '16px', marginBottom: '24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <ClipboardList size={20} className="text-blue-400" />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>
+          <ClipboardList size={20} className="text-blue-600" />
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
             Accessory Requisition Gate Passes ({filtered.length})
           </h3>
         </div>
@@ -48,7 +48,7 @@ export const RequisitionsList = ({ requests, onSelectRequest, onEditPending, onP
 
       {/* Requests List */}
       {filtered.length === 0 ? (
-        <div className="glass-card" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+        <div className="glass-card" style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
           <p>No requisitions found under current filter.</p>
         </div>
       ) : (
@@ -63,32 +63,32 @@ export const RequisitionsList = ({ requests, onSelectRequest, onEditPending, onP
                 padding: '16px 20px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
+                justify: 'space-between',
                 flexWrap: 'wrap',
                 gap: '16px',
-                borderLeft: req.status === 'pending' ? '4px solid #f59e0b' :
-                           req.status === 'approved' ? '4px solid #3b82f6' :
-                           req.status === 'ready' ? '4px solid #8b5cf6' : '4px solid #10b981'
+                borderLeft: req.status === 'pending' ? '5px solid #d97706' :
+                           req.status === 'approved' ? '5px solid #2563eb' :
+                           req.status === 'ready' ? '5px solid #7c3aed' : '5px solid #059669'
               }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-                    <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#60a5fa' }}>{req.req_no}</h4>
+                    <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#2563eb' }}>{req.req_no}</h4>
                     {getStatusBadge(req.status)}
-                    <span style={{ fontSize: '0.8rem', color: '#fbbf24', background: 'rgba(245, 158, 11, 0.1)', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
-                      LOT #: <strong>{req.lot_batch_no}</strong>
+                    <span style={{ fontSize: '0.8rem', color: '#b45309', background: '#fef3c7', padding: '2px 8px', borderRadius: '4px', border: '1px solid #fde68a', fontWeight: 700 }}>
+                      LOT #: {req.lot_batch_no}
                     </span>
                   </div>
 
-                  <p style={{ fontSize: '0.825rem', color: '#cbd5e1' }}>
+                  <p style={{ fontSize: '0.85rem', color: '#334155', fontWeight: 500 }}>
                     Requested by: <strong>{req.requester_name}</strong> ({req.unit_type}) • {new Date(req.created_at).toLocaleString()}
                   </p>
 
-                  <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px' }}>
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
                     Items: {(req.items || []).map(i => `${i.style_code} (${i.approved_qty || i.requested_qty} pcs)`).join(', ')}
                   </p>
 
                   {req.extra_qty_notes && (
-                    <p style={{ fontSize: '0.75rem', color: '#fbbf24', marginTop: '4px', fontStyle: 'italic' }}>
+                    <p style={{ fontSize: '0.75rem', color: '#b45309', marginTop: '4px', fontStyle: 'italic', fontWeight: 600 }}>
                       Extra Issue Note: {req.extra_qty_notes}
                     </p>
                   )}
