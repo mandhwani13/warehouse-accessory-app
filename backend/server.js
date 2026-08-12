@@ -413,8 +413,8 @@ const server = http.createServer((req, res) => {
   return sendJSON(404, { error: 'Not found' });
 });
 
-server.listen(PORT, '127.0.0.1', () => {
+server.listen(PORT, () => {
   console.log(`===================================================`);
-  console.log(`Warehouse Accessory App Server running on http://127.0.0.1:${PORT}`);
+  console.log(`Warehouse Accessory App Server running on port ${PORT}`);
   console.log(`===================================================`);
 });
