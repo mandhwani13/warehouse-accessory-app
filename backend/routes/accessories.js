@@ -53,6 +53,33 @@ router.post('/brands', authenticateToken, requireRole(['owner', 'warehouse_manag
   res.status(201).json(newBrand);
 });
 
+// PUT update brand (Owner & Manager)
+router.put('/brands/:id', authenticateToken, requireRole(['owner', 'warehouse_manager']), (req, res) => {
+  const { id } = req.params;
+  const { name, code } = req.body;
+  const db = readData();
+  const idx = db.brands.findIndex(b => b.id === id);
+  if (idx === -1) return res.status(404).json({ error: 'Brand not found' });
+
+  if (name) db.brands[idx].name = name.trim();
+  if (code) db.brands[idx].code = code.trim().toUpperCase();
+
+  writeData(db);
+  res.json(db.brands[idx]);
+});
+
+// DELETE brand (Owner & Manager)
+router.delete('/brands/:id', authenticateToken, requireRole(['owner', 'warehouse_manager']), (req, res) => {
+  const { id } = req.params;
+  const db = readData();
+  const idx = db.brands.findIndex(b => b.id === id);
+  if (idx === -1) return res.status(404).json({ error: 'Brand not found' });
+
+  const deleted = db.brands.splice(idx, 1)[0];
+  writeData(db);
+  res.json({ message: 'Brand deleted successfully', brand: deleted });
+});
+
 // GET categories
 router.get('/categories', authenticateToken, (req, res) => {
   const db = readData();
@@ -74,6 +101,34 @@ router.post('/categories', authenticateToken, requireRole(['owner', 'warehouse_m
   db.categories.push(newCat);
   writeData(db);
   res.status(201).json(newCat);
+});
+
+// PUT update category (Owner & Manager)
+router.put('/categories/:id', authenticateToken, requireRole(['owner', 'warehouse_manager']), (req, res) => {
+  const { id } = req.params;
+  const { name, target_unit, description } = req.body;
+  const db = readData();
+  const idx = db.categories.findIndex(c => c.id === id);
+  if (idx === -1) return res.status(404).json({ error: 'Category not found' });
+
+  if (name) db.categories[idx].name = name.trim();
+  if (target_unit) db.categories[idx].target_unit = target_unit;
+  if (description !== undefined) db.categories[idx].description = description.trim();
+
+  writeData(db);
+  res.json(db.categories[idx]);
+});
+
+// DELETE category (Owner & Manager)
+router.delete('/categories/:id', authenticateToken, requireRole(['owner', 'warehouse_manager']), (req, res) => {
+  const { id } = req.params;
+  const db = readData();
+  const idx = db.categories.findIndex(c => c.id === id);
+  if (idx === -1) return res.status(404).json({ error: 'Category not found' });
+
+  const deleted = db.categories.splice(idx, 1)[0];
+  writeData(db);
+  res.json({ message: 'Category deleted successfully', category: deleted });
 });
 
 // GET all accessories (Role aware)

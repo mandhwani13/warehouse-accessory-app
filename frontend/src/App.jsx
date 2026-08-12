@@ -223,6 +223,80 @@ function MainApp() {
     }
   };
 
+  const handleEditBrand = async (id, brandData) => {
+    try {
+      const token = localStorage.getItem('kaypee_token') || 'owner';
+      const res = await fetch(`/api/brands/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(brandData)
+      });
+      const data = await res.json();
+      if (!res.ok) return alert(data.error || 'Failed to edit brand');
+      fetchData();
+      alert(`Brand updated successfully!`);
+    } catch (err) {
+      alert('Error updating brand: ' + err.message);
+    }
+  };
+
+  const handleDeleteBrand = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this brand?')) return;
+    try {
+      const token = localStorage.getItem('kaypee_token') || 'owner';
+      const res = await fetch(`/api/brands/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) return alert(data.error || 'Failed to delete brand');
+      fetchData();
+      alert(`Brand deleted successfully!`);
+    } catch (err) {
+      alert('Error deleting brand: ' + err.message);
+    }
+  };
+
+  const handleEditCategory = async (id, catData) => {
+    try {
+      const token = localStorage.getItem('kaypee_token') || 'owner';
+      const res = await fetch(`/api/categories/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(catData)
+      });
+      const data = await res.json();
+      if (!res.ok) return alert(data.error || 'Failed to edit accessory type');
+      fetchData();
+      alert(`Accessory type updated successfully!`);
+    } catch (err) {
+      alert('Error updating accessory type: ' + err.message);
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this accessory type?')) return;
+    try {
+      const token = localStorage.getItem('kaypee_token') || 'owner';
+      const res = await fetch(`/api/categories/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) return alert(data.error || 'Failed to delete accessory type');
+      fetchData();
+      alert(`Accessory type deleted successfully!`);
+    } catch (err) {
+      alert('Error deleting accessory type: ' + err.message);
+    }
+  };
+
   // Print A6 Challan
   const handlePrint = (req) => {
     setPrintRequest(req);
@@ -309,7 +383,11 @@ function MainApp() {
         brands={brands}
         categories={categories}
         onAddBrand={handleAddBrand}
+        onEditBrand={handleEditBrand}
+        onDeleteBrand={handleDeleteBrand}
         onAddCategory={handleAddCategory}
+        onEditCategory={handleEditCategory}
+        onDeleteCategory={handleDeleteCategory}
       />
 
       <UserManagementModal
